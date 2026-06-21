@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>DIGITAL ETHIOPIA CENSUS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            brand: ['"Playfair Display"', 'serif'],
+            ui: ['"DM Sans"', 'sans-serif'],
+          },
+          colors: {
+            forest: { 50:'#EFFDF5',100:'#D9FBE8',200:'#B5F5D3',300:'#7CEBB2',400:'#3DD98A',500:'#15B86C',600:'#0D9456',700:'#0B7546',800:'#0C5D39',900:'#0A4D30',950:'#032B1A' },
+            gold: { 50:'#FFF9EB',100:'#FFF0C6',200:'#FFE08A',300:'#FFCB4A',400:'#FFB620',500:'#F59E0B',600:'#D97706',700:'#B45309' },
+            flag: { green:'#009B3A',yellow:'#FCDD09',red:'#DA121A',blue:'#003399' },
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    *,*::before,*::after{box-sizing:border-box}
+    html{font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent}
+    body{background:#F4F7F5;color:#0A2E1B;margin:0;min-height:100dvh}
+
+    @keyframes pulse-ring{0%{transform:scale(1);opacity:.5}100%{transform:scale(2.8);opacity:0}}
+    .sync-pulse::before{content:'';position:absolute;inset:0;border-radius:9999px;background:inherit;animation:pulse-ring 1.8s cubic-bezier(.4,0,.6,1) infinite}
+
+    @keyframes toast-in{from{transform:translateY(-20px) scale(.95);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+    @keyframes toast-out{from{opacity:1}to{transform:translateY(-10px);opacity:0}}
+    .toast-enter{animation:toast-in .35s ease-out forwards}
+    .toast-exit{animation:toast-out .25s ease-in forwards}
+
+    @keyframes row-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .row-animate{animation:row-in .3s ease-out both}
+
+    @keyframes fade-up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .fade-up{animation:fade-up .6s ease-out both}
+
+    @keyframes fade-in{from{opacity:0}to{opacity:1}}
+    .fade-in{animation:fade-in .8s ease-out both}
+
+    @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+    .shimmer-border{background:linear-gradient(90deg,#009B3A 0%,#FCDD09 50%,#DA121A 100%);background-size:200% 100%;animation:shimmer 4s linear infinite}
+
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    .float-anim{animation:float 4s ease-in-out infinite}
+
+    .tab-btn{position:relative;transition:all .2s}
+    .tab-btn::after{content:'';position:absolute;bottom:0;left:50%;width:0;height:3px;background:linear-gradient(90deg,#0D9456,#15B86C);border-radius:2px;transition:all .3s cubic-bezier(.4,0,.2,1);transform:translateX(-50%)}
+    .tab-btn.active::after{width:100%}
+    .tab-btn.active{color:#0A4D30}
+
+    .field-input:focus{outline:none;box-shadow:0 0 0 3px rgba(13,148,86,.18);border-color:#0D9456}
+    .card-glass{background:rgba(255,255,255,.85);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+
+    @keyframes spin-slow{to{transform:rotate(360deg)}}
+    .spin-slow{animation:spin-slow 1s linear infinite}
+
+    .section-divider{display:flex;align-items:center;gap:10px;margin:8px 0 6px}
+    .section-divider::before,.section-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,#D1D5DB,transparent)}
+    .section-divider span{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.15em;color:#9CA3AF;white-space:nowrap}
+
+    @keyframes page-exit{to{opacity:0;transform:translateY(-20px)}}
+    .page-exit{animation:page-exit .35s ease-in forwards}
+    @keyframes page-enter{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .page-enter{animation:page-enter .4s ease-out both}
+
+    .timeline-line{position:absolute;left:23px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,#009B3A,#FCDD09,#DA121A)}
+
+    @keyframes banner-in{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+    .banner-enter{animation:banner-in .4s ease-out forwards}
+
+    [appearance=textfield]::-webkit-outer-spin-button,
+    [appearance=textfield]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+    @media(prefers-reduced-motion:reduce){
+      .sync-pulse::before,.toast-enter,.toast-exit,.row-animate,.fade-up,.fade-in,
+      .float-anim,.shimmer-border,.page-exit,.page-enter,.banner-enter{animation:none}
+    }
+
+    body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.01;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+    .blob-1{position:fixed;top:-120px;right:-80px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(0,155,58,.06),transparent 70%);pointer-events:none;z-index:0}
+    .blob-2{position:fixed;bottom:-100px;left:-60px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(218,18,26,.04),transparent 70%);pointer-events:none;z-index:0}
+  </style>
+</head>
+<body>
+  <div class="blob-1"></div>
+  <div class="blob-2"></div>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useRef, useMemo } = React;
+
+    /* ═══ Security: Storage Detection ═══ */
+    async function probeStorage(getFn, testFn) {
+      try { const s = getFn(); if (!s) return false; return await testFn(s); } catch (_) { return false; }
+    }
+    async function testIndexedDB(f) {
+      return new Promise((res) => {
+        const n = '__p_' + Date.now();
+        const r = f.open(n, 1);
+        r.onupgradeneeded = (e) => { e.target.result.createObjectStore('t'); };
+        r.onsuccess = (e) => {
+          const db = e.target.result;
+          try {
+            const tx = db.transaction('t', 'readwrite'); tx.objectStore('t').add('ok', 1);
+            tx.oncomplete = () => { const tx2 = db.transaction('t','readwrite'); tx2.objectStore('t').delete(1); tx2.oncomplete = () => { db.close(); f.deleteDatabase(n); res(true); }; tx2.onerror = () => { db.close(); res(false); }; };
+            tx.onerror = () => { db.close(); res(false); };
+          } catch (_) { db.close(); res(false); }
+        };
+        r.onerror = () => res(false);
+        setTimeout(() => res(false), 3000);
+      });
+    }
+    async function testLocalStorage(ls) { const k = '__p_' + Date.now(); ls.setItem(k,'1'); const v = ls.getItem(k); ls.removeItem(k); return v === '1'; }
+    async function detectStorageTiers() { return { idb: await probeStorage(() => indexedDB, testIndexedDB), ls: await probeStorage(() => localStorage, testLocalStorage), memory: true }; }
+
+    /* ═══ Storage Engine ═══ */
+    class CensusDB {
+      constructor() {
+        this.dbName='DEC_V6'; this.storeName='enums'; this.lsKey='dec_v6'; this.lsIdKey='dec_v6_id';
+        this._memData=[]; this._memNId=1; this.tier=null; this.db=null; this.ready=this._init();
+      }
+      async _init() {
+        const t = await detectStorageTiers();
+        if (t.idb) { try { await this._openIDB(); this.tier='idb'; return; } catch(e) { console.warn('IDB fail:', e.message); } }
+        if (t.ls) { this.tier='ls'; if(!localStorage.getItem(this.lsIdKey)){try{const a=JSON.parse(localStorage.getItem(this.lsKey)||'[]');localStorage.setItem(this.lsIdKey,String(a.reduce((m,r)=>Math.max(m,r.id||0),0)+1))}catch(_){localStorage.setItem(this.lsIdKey,'1')}}return; }
+        this.tier='memory'; console.warn('All storage blocked. Using memory fallback.');
+      }
+      async _openIDB() {
+        return new Promise((res,rej)=>{
+          const r=indexedDB.open(this.dbName,1);
+          r.onupgradeneeded=(e)=>{const db=e.target.result;if(!db.objectStoreNames.contains(this.storeName)){const s=db.createObjectStore(this.storeName,{keyPath:'id',autoIncrement:true});s.createIndex('synced','synced',{unique:false});s.createIndex('createdAt','createdAt',{unique:false})}};
+          r.onsuccess=(e)=>{this.db=e.target.result;res(this.db)};r.onerror=(e)=>rej(e.target.error);r.onblocked=()=>rej(new Error('IDB blocked'));
+        });
+      }
+      async _ensure(){await this.ready}
+      _memRead(){return[...this._memData]} _memWrite(a){this._memData=a} _memNId(){return this._memNId++}
+      _lsRead(){try{return JSON.parse(localStorage.getItem(this.lsKey))||[]}catch{return[]}}
+      _lsWrite(a){localStorage.setItem(this.lsKey,JSON.stringify(a))}
+      _lsNId(){const id=parseInt(localStorage.getItem(this.lsIdKey),10)||1;localStorage.setItem(this.lsIdKey,String(id+1));return id}
+
+      async add(rec){
+        await this._ensure();const en={...rec,synced:false,createdAt:new Date().toISOString()};
+        if(this.tier==='idb')return new Promise((res,rej)=>{const r=this.db.transaction(this.storeName,'readwrite').objectStore(this.storeName).add(en);r.onsuccess=()=>res(r.result);r.onerror=(e)=>rej(e.target.error)});
+        if(this.tier==='ls'){const a=this._lsRead();en.id=this._lsNId();a.push(en);this._lsWrite(a);return en.id}
+        en.id=this._memNId();this._memData.push(en);return en.id;
+      }
+      async getAll(){
+        await this._ensure();
+        if(this.tier==='idb')return new Promise((res,rej)=>{const r=this.db.transaction(this.storeName,'readonly').objectStore(this.storeName).getAll();r.onsuccess=()=>res(r.result);r.onerror=(e)=>rej(e.target.error)});
+        if(this.tier==='ls')return this._lsRead();return this._memRead();
+      }
+      async delete(id){
+        await this._ensure();
+        if(this.tier==='idb')return new Promise((res,rej)=>{this.db.transaction(this.storeName,'readwrite').objectStore(this.storeName).delete(id).onsuccess=()=>res()});
+        if(this.tier==='ls')this._lsWrite(this._lsRead().filter(r=>r.id!==id));else this._memData=this._memData.filter(r=>r.id!==id);
+      }
+      async markAllSynced(){
+        await this._ensure();
+        if(this.tier==='idb')return new Promise((res,rej)=>{const c=this.db.transaction(this.storeName,'readwrite').objectStore(this.storeName).openCursor();c.onsuccess=(e)=>{const cur=e.target.result;if(cur){cur.update({...cur.value,synced:true});cur.continue()}else res()};c.onerror=(e)=>rej(e.target.error)});
+        if(this.tier==='ls')this._lsWrite(this._lsRead().map(r=>({...r,synced:true})));else this._memData=this._memData.map(r=>({...r,synced:true}));
+      }
+      async getUnsyncedCount(){
+        await this._ensure();
+        if(this.tier==='idb')return new Promise((res,rej)=>{const r=this.db.transaction(this.storeName,'readonly').objectStore(this.storeName).index('synced').getAll(false);r.onsuccess=()=>res(r.result.length);r.onerror=(e)=>rej(e.target.error)});
+        if(this.tier==='ls')return this._lsRead().filter(r=>!r.synced).length;return this._memData.filter(r=>!r.synced).length;
+      }
+      getTier(){return this.tier} isPersistent(){return this.tier==='idb'||this.tier==='ls'}
+    }
+    const db = new CensusDB();
+
+    const REGIONS = ['Addis Ababa','Afar','Amhara','Benishangul-Gumuz','Dire Dawa','Gambela','Harari','Oromia','Sidama','Somali','Southern Nations (SNNPR)','Tigray'];
+
+    /* ═══ Ethiopian Flag SVG ═══ */
+    function EthiopianFlag({ size = 48 }) {
+      return (
+        <svg width={size} height={size} viewBox="0 0 300 200" className="rounded-lg overflow-hidden" style={{border:'2px solid rgba(255,255,255,0.15)'}}>
+          <rect x="0" y="0" width="300" height="66.67" fill="#009B3A"/>
+          <rect x="0" y="66.67" width="300" height="66.67" fill="#FCDD09"/>
+          <rect x="0" y="133.33" width="300" height="66.67" fill="#DA121A"/>
+          <circle cx="150" cy="100" r="40" fill="#003399"/>
+          <polygon points="150,65 157,88 182,88 162,102 169,125 150,112 131,125 138,102 118,88 143,88" fill="#FCDD09"/>
+          {Array.from({length:12}).map((_,i)=>{const a=(i*30-90)*(Math.PI/180);return <line key={i} x1={150+Math.cos(a)*26} y1={100+Math.sin(a)*26} x2={150+Math.cos(a)*36} y2={100+Math.sin(a)*36} stroke="#FCDD09" strokeWidth="2" strokeLinecap="round"/>;})}
+        </svg>
+      );
+    }
+
+    /* ═══ Security Banner ═══ */
+    function SecurityBanner({ isPersistent, onDismiss }) {
+      if (isPersistent) return null;
+      return (
+        <div className="banner-enter fixed top-0 left-0 right-0 z-[200]">
+          <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-white px-4 py-2.5 flex items-center gap-3 shadow-lg shadow-amber-900/20">
+            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0"><i className="fa-solid fa-triangle-exclamation text-sm"></i></div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold leading-snug">Offline saving is disabled due to browser security settings. Please open in a new tab to save data permanently.</p>
+              <p className="text-[10px] text-amber-100/70 font-medium mt-0.5">Currently using temporary memory — all data will be lost on page refresh.</p>
+            </div>
+            <button onClick={onDismiss} className="w-7 h-7 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center flex-shrink-0 transition-colors" aria-label="Dismiss"><i className="fa-solid fa-xmark text-xs"></i></button>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══ Landing Page ═══ */
+    function LandingPage({ onNext }) {
+      const [exiting, setExiting] = useState(false);
+      const go = () => { setExiting(true); setTimeout(() => onNext(), 350); };
+      const censuses = [
+        { year:'1984',label:'The First Census',regime:'Derg Regime',population:'42.1 Million',bgColor:'bg-emerald-50',borderColor:'border-emerald-200',textColor:'text-emerald-800',accentBg:'bg-emerald-500',icon:'fa-flag',desc:'Conducted under the Derg regime, this was the first effort to count people nationwide. It recorded a population of 42.1 million and established the foundation for modern census-taking in Ethiopia.' },
+        { year:'1994',label:'The Second Census',regime:'Federal Transition',population:'53.5 Million',bgColor:'bg-amber-50',borderColor:'border-amber-200',textColor:'text-amber-800',accentBg:'bg-amber-500',icon:'fa-landmark',desc:'Conducted after the transition to the federal system, recording 53.5 million people. This census reflected the new regional state structure of Ethiopia.' },
+        { year:'2007',label:'The Third Census',regime:'Federal Democratic Republic',population:'73.9 Million',bgColor:'bg-red-50',borderColor:'border-red-200',textColor:'text-red-800',accentBg:'bg-red-500',icon:'fa-chart-bar',desc:'The most recent completed census, which counted 73.9 million people. It was the first to face significant public debate over demographic shifts between regions.' },
+      ];
+
+      return (
+        <div className={`min-h-[100dvh] flex flex-col relative z-10 ${exiting?'page-exit':''}`}>
+          <div className="h-[3px] shimmer-border"></div>
+          <div className="relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-forest-950 via-forest-900 to-forest-950"></div>
+            <div className="absolute top-10 right-10 w-64 h-64 rounded-full opacity-[0.04]" style={{background:'radial-gradient(circle,#FCDD09,transparent)'}}></div>
+            <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full opacity-[0.03]" style={{background:'radial-gradient(circle,#DA121A,transparent)'}}></div>
+            <div className="relative max-w-3xl mx-auto px-5 pt-12 pb-16">
+              <div className="flex items-center gap-4 mb-8 fade-up">
+                <div className="float-anim"><EthiopianFlag size={64} /></div>
+                <div>
+                  <h1 className="font-brand text-[26px] sm:text-[30px] leading-none font-black text-white tracking-tight">DIGITAL ETHIOPIA</h1>
+                  <span className="text-[12px] font-extrabold text-flag-yellow tracking-[0.35em] uppercase">Census</span>
+                </div>
+              </div>
+              <div className="fade-up" style={{animationDelay:'.15s'}}>
+                <h2 className="font-brand text-3xl sm:text-4xl font-black text-white leading-tight mb-4">Counting People,<br/><span className="bg-gradient-to-r from-flag-yellow via-gold-400 to-flag-yellow bg-clip-text text-transparent">Shaping the Future</span></h2>
+                <p className="text-base text-forest-200/70 leading-relaxed max-w-lg">A modern digital enumeration tool built for Ethiopia's census workers. Offline-first, fast, and reliable — designed to work anywhere.</p>
+              </div>
+              <div className="grid grid-cols-3 gap-3 mt-8 fade-up" style={{animationDelay:'.3s'}}>
+                {[{num:'1984–2007',label:'Census History',icon:'fa-clock-rotate-left'},{num:'11',label:'Regions',icon:'fa-map'},{num:'120M+',label:'Estimated Pop.',icon:'fa-users'}].map((s,i)=>(
+                  <div key={i} className="bg-white/[0.06] backdrop-blur-sm rounded-xl border border-white/[0.08] px-3 py-3">
+                    <i className={`fa-solid ${s.icon} text-forest-300/50 text-xs mb-1.5 block`}></i>
+                    <div className="text-lg font-extrabold text-white leading-none">{s.num}</div>
+                    <div className="text-[9px] font-semibold text-forest-300/40 uppercase tracking-wider mt-1">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 bg-gradient-to-b from-forest-50 to-white">
+            <div className="max-w-3xl mx-auto px-5 py-10">
+              <div className="text-center mb-8 fade-up" style={{animationDelay:'.4s'}}>
+                <span className="inline-flex items-center gap-2 text-[10px] font-extrabold text-forest-500 bg-forest-100 px-3 py-1.5 rounded-full uppercase tracking-widest"><i className="fa-solid fa-landmark-dome"></i> Historical Context</span>
+                <h3 className="text-xl font-extrabold text-forest-950 mt-3">Ethiopia's Census History</h3>
+                <p className="text-sm text-gray-400 mt-1 max-w-md mx-auto">Three comprehensive national population and housing censuses have been conducted in Ethiopia's modern history.</p>
+              </div>
+              <div className="relative pl-14 space-y-5">
+                <div className="timeline-line"></div>
+                {censuses.map((c,i)=>(
+                  <div key={c.year} className="relative fade-up" style={{animationDelay:`${0.5+i*0.15}s`}}>
+                    <div className={`absolute -left-14 top-3 w-12 h-12 rounded-full ${c.bgColor} border-2 ${c.borderColor} flex items-center justify-center z-10 shadow-sm`}><i className={`fa-solid ${c.icon} text-sm ${c.textColor}`}></i></div>
+                    <div className={`${c.bgColor} rounded-2xl border ${c.borderColor} p-4`}>
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div>
+                          <div className="flex items-center gap-2"><span className={`text-2xl font-black ${c.textColor}`}>{c.year}</span><span className={`text-[10px] font-bold ${c.textColor} bg-white/60 px-2 py-0.5 rounded-full uppercase tracking-wider`}>{c.label}</span></div>
+                          <span className="text-[11px] font-semibold text-gray-400">{c.regime}</span>
+                        </div>
+                        <div className="text-right flex-shrink-0"><div className={`text-xl font-black ${c.textColor}`}>{c.population}</div><div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Recorded</div></div>
+                      </div>
+                      <p className="text-xs text-gray-600 leading-relaxed">{c.desc}</p>
+                      <div className="mt-3 h-2 rounded-full bg-white/50 overflow-hidden"><div className={`h-full rounded-full ${c.accentBg} opacity-70`} style={{width:`${(parseFloat(c.population)/73.9)*100}%`}}></div></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-8 bg-gradient-to-r from-forest-900 to-forest-950 rounded-2xl p-5 text-center fade-up" style={{animationDelay:'.95s'}}>
+                <div className="flex items-center justify-center gap-2 mb-2"><EthiopianFlag size={28} /><span className="text-[10px] font-extrabold text-forest-300/60 uppercase tracking-widest">The Next Chapter</span></div>
+                <p className="text-white font-bold text-sm leading-relaxed max-w-md mx-auto">Now it's time for the next census. You are part of this historic effort to count every person in Ethiopia.</p>
+              </div>
+              <div className="mt-8 fade-up" style={{animationDelay:'1.1s'}}>
+                <button onClick={go} className="w-full py-4 rounded-2xl bg-gradient-to-r from-forest-700 via-forest-800 to-forest-900 text-white font-extrabold text-base tracking-wide hover:from-forest-800 hover:via-forest-900 hover:to-forest-950 active:scale-[0.97] transition-all shadow-xl shadow-forest-900/30 flex items-center justify-center gap-3 group">
+                  <span>Begin Enumeration</span><i className="fa-solid fa-arrow-right text-sm transition-transform group-hover:translate-x-1"></i>
+                </button>
+                <p className="text-center text-[11px] text-gray-400 mt-3 font-medium"><i className="fa-solid fa-shield-halved mr-1"></i>All data stored securely on this device. Works offline.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* ═══ Toast ═══ */
+    function ToastContainer({toasts,onDismiss}){
+      return(<div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-2 w-[92%] max-w-md pointer-events-none">
+        {toasts.map(t=>(<div key={t.id} className={`pointer-events-auto rounded-xl px-4 py-3 flex items-start gap-3 border shadow-xl backdrop-blur-sm ${t.exiting?'toast-exit':'toast-enter'} ${t.type==='success'?'bg-emerald-50/95 border-emerald-400 text-emerald-900':t.type==='error'?'bg-red-50/95 border-red-400 text-red-900':'bg-amber-50/95 border-amber-400 text-amber-900'}`}>
+          <i className={`fa-solid mt-0.5 ${t.type==='success'?'fa-circle-check text-emerald-600':t.type==='error'?'fa-circle-xmark text-red-500':'fa-circle-info text-amber-500'}`}></i>
+          <div className="flex-1 text-sm font-semibold leading-snug">{t.message}</div>
+          <button onClick={()=>onDismiss(t.id)} className="opacity-40 hover:opacity-100 transition-opacity ml-1" aria-label="Dismiss"><i className="fa-solid fa-xmark text-xs"></i></button>
+        </div>))}
+      </div>)
+    }
+
+    /* ═══ Sync ═══ */
+    function SyncStatus({isOnline,unsyncedCount}){
+      return(<div className="flex items-center gap-2">
+        <span className={`relative block w-2.5 h-2.5 rounded-full ${isOnline?'bg-emerald-400 sync-pulse':'bg-red-400'}`}></span>
+        <span className={`text-[11px] font-bold tracking-widest uppercase ${isOnline?'text-emerald-300':'text-red-300'}`}>{isOnline?'Online':'Offline'}</span>
+        {unsyncedCount>0&&<span className="bg-gold-400 text-forest-950 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full leading-none">{unsyncedCount}</span>}
+      </div>)
+    }
+
+    /* ═══ Counter Input ═══ */
+    function CounterInput({label,icon,value,onChange,error,max=999,bgColor='bg-forest-50',textColor='text-forest-900'}){
+      const inc=()=>{const v=parseInt(value)||0;if(v<max)onChange(String(v+1))};
+      const dec=()=>{const v=parseInt(value)||0;if(v>0)onChange(String(v-1))};
+      return(<div>
+        <label className="block text-xs font-bold text-forest-900 mb-1.5"><i className={`fa-solid ${icon} text-forest-600 mr-1 text-[10px]`}></i>{label}</label>
+        <div className={`flex items-stretch rounded-xl border-2 overflow-hidden transition-all ${bgColor}`} style={{borderColor:error?'#F87171':'#D1D5DB'}}>
+          <button type="button" onClick={dec} className="w-11 flex items-center justify-center text-gray-400 hover:bg-black/5 hover:text-gray-700 active:bg-black/10 transition-all font-bold text-lg border-r border-gray-200/60 bg-white/50">-</button>
+          <input type="number" inputMode="numeric" min="0" max={max} value={value} onChange={e=>{if(e.target.value===''||/^\d+$/.test(e.target.value))onChange(e.target.value)}} className="flex-1 text-center text-xl font-extrabold bg-transparent border-0 focus:outline-none focus:ring-0 py-2.5 [appearance:textfield]" style={{color:'inherit'}}/>
+          <button type="button" onClick={inc} className="w-11 flex items-center justify-center text-gray-400 hover:bg-black/5 hover:text-gray-700 active:bg-black/10 transition-all font-bold text-lg border-l border-gray-200/60 bg-white/50">+</button>
+        </div>
+        {error&&<p className="mt-1 text-[11px] font-semibold text-red-500 flex items-center gap-1"><i className="fa-solid fa-triangle-exclamation"></i>{error}</p>}
+      </div>)
+    }
+
+    /* ═══ Census Form ═══ */
+    function CensusForm({onSave,addToast}){
+      const [form,setForm]=useState({fullName:'',familySize:'',maleCount:'',femaleCount:'',under10:'',under18:'',above60:'',region:'',subCity:'',zone:'',woreda:'',kebele:'',houseNo:''});
+      const [gps,setGps]=useState(null);
+      const [manualGps,setManualGps]=useState({lat:'',lng:''});
+      const [gpsMode,setGpsMode]=useState('auto');
+      const [gpsLoading,setGpsLoading]=useState(false);
+      const [gpsError,setGpsError]=useState('');
+      const [errors,setErrors]=useState({});
+      const [saving,setSaving]=useState(false);
+      const nameRef=useRef(null);
+      const isSecure=window.isSecureContext;
+
+      useEffect(()=>{if(nameRef.current)nameRef.current.focus()},[]);
+      const hc=(f,v)=>{setForm(p=>({...p,[f]:v}));if(errors[f])setErrors(p=>{const n={...p};delete n[f];return n})};
+
+      const captureGPS=useCallback(()=>{
+        if(!navigator.geolocation){setGpsError('Not supported. Use manual.');setGpsMode('manual');return}
+        if(!isSecure){setGpsError('GPS needs HTTPS. Use manual.');setGpsMode('manual');addToast('GPS blocked: not on HTTPS','error');return}
+        setGpsLoading(true);setGpsError('');
+        navigator.geolocation.getCurrentPosition(
+          (p)=>{setGps({lat:p.coords.latitude.toFixed(6),lng:p.coords.longitude.toFixed(6),acc:p.coords.accuracy.toFixed(1)});setGpsLoading(false);addToast('GPS captured','success')},
+          (e)=>{setGpsLoading(false);const m={1:'Permission denied. Allow in settings or use manual.',2:'Unavailable. Try outdoors.',3:'Timed out.'};setGpsError(m[e.code]||'Error.');setGpsMode('manual');addToast(m[e.code]||'GPS error','error')},
+          {enableHighAccuracy:true,timeout:20000,maximumAge:0}
+        );
+      },[addToast,isSecure]);
+
+      const applyManual=()=>{
+        const lat=parseFloat(manualGps.lat),lng=parseFloat(manualGps.lng);
+        if(isNaN(lat)||isNaN(lng)||lat<-90||lat>90||lng<-180||lng>180){addToast('Invalid coordinates','error');return}
+        setGps({lat:lat.toFixed(6),lng:lng.toFixed(6),acc:'Manual'});setGpsError('');addToast('Manual GPS applied','success');
+      };
+
+      const validate=()=>{
+        const e={};
+        if(!form.fullName.trim())e.fullName='Required';else if(form.fullName.trim().length<2)e.fullName='Min 2 characters';
+        const fs=parseInt(form.familySize);if(!form.familySize&&form.familySize!=='0')e.familySize='Required';else if(isNaN(fs)||fs<1||fs>99)e.familySize='1-99';
+        const mc=parseInt(form.maleCount);if(form.maleCount===''&&form.maleCount!=='0')e.maleCount='Required';else if(isNaN(mc)||mc<0)e.maleCount='Invalid';
+        const fc_=parseInt(form.femaleCount);if(form.femaleCount===''&&form.femaleCount!=='0')e.femaleCount='Required';else if(isNaN(fc_)||fc_<0)e.femaleCount='Invalid';
+        if(!e.familySize&&!e.maleCount&&!e.femaleCount&&mc+fc_!==fs)e.countMismatch=`Male(${mc}) + Female(${fc_}) = ${mc+fc_}, family = ${fs}`;
+        const u10=parseInt(form.under10);if(form.under10===''&&form.under10!=='0')e.under10='Required';else if(isNaN(u10)||u10<0)e.under10='Invalid';
+        const u18=parseInt(form.under18);if(form.under18===''&&form.under18!=='0')e.under18='Required';else if(isNaN(u18)||u18<0)e.under18='Invalid';
+        const a60=parseInt(form.above60);if(form.above60===''&&form.above60!=='0')e.above60='Required';else if(isNaN(a60)||a60<0)e.above60='Invalid';
+        if(!e.under10&&!e.under18&&u10>u18)e.under10max='Under 10 cannot exceed Under 18';
+        if(!e.under10&&!e.familySize&&u10>fs)e.under10fam='Exceeds family size';
+        if(!e.under18&&!e.familySize&&u18>fs)e.under18fam='Exceeds family size';
+        if(!e.above60&&!e.familySize&&a60>fs)e.above60fam='Exceeds family size';
+        if(!form.region)e.region='Select region';
+        if(!form.subCity.trim())e.subCity='Required';
+        if(!form.zone.trim())e.zone='Required';
+        if(!form.woreda.trim())e.woreda='Required';
+        if(!form.kebele.trim())e.kebele='Required';
+        if(!form.houseNo.trim())e.houseNo='Required';
+        setErrors(e);return Object.keys(e).length===0;
+      };
+
+      const handleSubmit=async(ev)=>{
+        ev.preventDefault();if(!validate()){addToast('Please fix the errors','error');return}
+        setSaving(true);
+        try{
+          await db.add({fullName:form.fullName.trim(),familySize:parseInt(form.familySize),maleCount:parseInt(form.maleCount),femaleCount:parseInt(form.femaleCount),under10:parseInt(form.under10),under18:parseInt(form.under18),above60:parseInt(form.above60),region:form.region,subCity:form.subCity.trim(),zone:form.zone.trim(),woreda:form.woreda.trim(),kebele:form.kebele.trim(),houseNo:form.houseNo.trim(),latitude:gps?parseFloat(gps.lat):null,longitude:gps?parseFloat(gps.lng):null,gpsAccuracy:gps?gps.acc:null});
+          addToast(`Saved: ${form.fullName.trim()}`,'success');
+          setForm({fullName:'',familySize:'',maleCount:'',femaleCount:'',under10:'',under18:'',above60:'',region:'',subCity:'',zone:'',woreda:'',kebele:'',houseNo:''});
+          setGps(null);setManualGps({lat:'',lng:''});setGpsError('');setErrors({});
+          if(nameRef.current)nameRef.current.focus();onSave();
+        }catch(err){addToast('Save failed: '+err.message,'error')}finally{setSaving(false)}
+      };
+
+      const fc=(f)=>`field-input w-full px-4 py-3 rounded-xl border-2 text-[15px] font-semibold bg-white transition-all ${errors[f]?'border-red-400 bg-red-50/50':'border-gray-200 hover:border-gray-300'}`;
+
+      return(<form onSubmit={handleSubmit} noValidate className="space-y-1">
+        <div className="section-divider"><span><i className="fa-solid fa-house-chimney mr-1.5"></i>Household Information</span></div>
+        <div className="fade-up pt-2" style={{animationDelay:'50ms'}}>
+          <label className="block text-sm font-bold text-forest-900 mb-1.5"><i className="fa-solid fa-user text-forest-600 mr-1.5 text-xs"></i>Full Name (Head of Household)</label>
+          <input ref={nameRef} type="text" autoComplete="name" placeholder="Enter full name" value={form.fullName} onChange={e=>hc('fullName',e.target.value)} className={fc('fullName')} />
+          {errors.fullName&&<p className="mt-1 text-[11px] font-semibold text-red-500 flex items-center gap-1"><i className="fa-solid fa-triangle-exclamation"></i>{errors.fullName}</p>}
+        </div>
+        <div className="fade-up pt-4" style={{animationDelay:'100ms'}}><CounterInput label="Number of Family Members" icon="fa-people-group" value={form.familySize} onChange={v=>hc('familySize',v)} error={errors.familySize} max={99} bgColor="bg-forest-50" textColor="text-forest-950" /></div>
+        <div className="grid grid-cols-2 gap-4 fade-up pt-4" style={{animationDelay:'150ms'}}>
+          <CounterInput label="Male Count" icon="fa-mars" value={form.maleCount} onChange={v=>hc('maleCount',v)} error={errors.maleCount} bgColor="bg-blue-50" textColor="text-blue-900" />
+          <CounterInput label="Female Count" icon="fa-venus" value={form.femaleCount} onChange={v=>hc('femaleCount',v)} error={errors.femaleCount} bgColor="bg-pink-50" textColor="text-pink-900" />
+        </div>
+        {errors.countMismatch&&<div className="bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 text-xs text-amber-800 font-semibold flex items-start gap-2 fade-up"><i className="fa-solid fa-triangle-exclamation mt-0.5"></i>{errors.countMismatch}</div>}
+        <div className="section-divider pt-4"><span><i className="fa-solid fa-child-reaching mr-1.5"></i>Age Breakdown</span></div>
+        <div className="grid grid-cols-3 gap-3 fade-up pt-2" style={{animationDelay:'200ms'}}>
+          <CounterInput label="Under 10" icon="fa-baby" value={form.under10} onChange={v=>hc('under10',v)} error={errors.under10||errors.under10max||errors.under10fam} bgColor="bg-amber-50" textColor="text-amber-900" />
+          <CounterInput label="Under 18" icon="fa-child" value={form.under18} onChange={v=>hc('under18',v)} error={errors.under18||errors.under18fam} bgColor="bg-orange-50" textColor="text-orange-900" />
+          <CounterInput label="Above 60" icon="fa-person-cane" value={form.above60} onChange={v=>hc('above60',v)} error={errors.above60||errors.above60fam} bgColor="bg-purple-50" textColor="text-purple-900" />
+        </div>
+
+        {/* ── Administrative Location ── */}
+        <div className="section-divider pt-4"><span><i className="fa-solid fa-location-dot mr-1.5"></i>Administrative Location</span></div>
+
+        <div className="fade-up pt-2" style={{animationDelay:'250ms'}}>
+          <label className="block text-sm font-bold text-forest-900 mb-1.5"><i className="fa-solid fa-map text-forest-600 mr-1.5 text-xs"></i>Region</label>
+          <select value={form.region} onChange={e=>hc('region',e.target.value)} className={fc('region')+(!form.region?' text-gray-400':'')}>
+            <option value="">Select region...</option>{REGIONS.map(r=><option key={r} value={r}>{r}</option>)}
+          </select>
+          {errors.region&&<p className="mt-1 text-[11px] font-semibold text-red-500 flex items-center gap-1"><i className="fa-solid fa-triangle-exclamation"></i>{errors.region}</p>}
+        </div>
+
+        {/* Sub City — new field */}
+        <div className="fade-up pt-4" style={{animationDelay:'275ms'}}>
+          <label className="block text-sm font-bold text-forest-900 mb-1.5"><i className="fa-solid fa-city text-forest-600 mr-1.5 text-xs"></i>Sub City</label>
+          <input type="text" placeholder="e.g. Kirkos, Nefas Silk, Arada" value={form.subCity} onChange={e=>hc('subCity',e.target.value)} className={fc('subCity')} />
+          {errors.subCity&&<p className="mt-1 text-[11px] font-semibold text-red-500 flex items-center gap-1"><i className="fa-solid fa-triangle-exclamation"></i>{errors.subCity}</p>}
+          <p className="mt-1 text-[10px] text-gray-400 font-medium"><i className="fa-solid fa-circle-info mr-0.5"></i>For Addis Ababa and Dire Dawa, use Sub City. For other regions, enter the sub-city or district name.</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 fade-up pt-4" style={{animationDelay:'300ms'}}>
+          <div><label className="block text-xs font-bold text-forest-900 mb-1.5"><i className="fa-solid fa-layer-group text-forest-600 mr-1 text-[10px]"></i>Zone</label><input type="text" placeholder="e.g. North Shewa" value={form.zone} onChange={e=>hc('zone',e.target.value)} className={fc('zone')}/>{errors.zone&&<p className="mt-1 text-[11px] font-semibold text-red-500 flex items-center gap-1"><i className="fa-solid fa-triangle-exclamation"></i>{errors.zone}</p>}</div>
+          <div><label className="block text-xs font-bold text-forest-900 mb-1.5"><i className="fa-solid fa-map-pin text-forest-600 mr-1 text-[10px]"></i>Woreda</label><input type="text" placeholder="e.g. Fitche" value={form.woreda} onChange={e=>hc('woreda',e.target.value)} className={fc('woreda')}/>{errors.woreda&&<p className="mt-1 text-[11px] font-semibold text-red-500 flex items-center gap-1"><i className="fa-solid fa-triangle-exclamation"></i>{errors.woreda}</p>}</div>
+        </div>
+        <div className="grid grid-cols-2 gap-4 fade-up pt-4" style={{animationDelay:'325ms'}}>
+          <div><label className="block text-xs font-bold text-forest-900 mb-1.5"><i className="fa-solid fa-building text-forest-600 mr-1 text-[10px]"></i>Kebele</label><input type="text" placeholder="e.g. Kebele 03" value={form.kebele} onChange={e=>hc('kebele',e.target.value)} className={fc('kebele')}/>{errors.kebele&&<p className="mt-1 text-[11px] font-semibold text-red-500 flex items-center gap-1"><i className="fa-solid fa-triangle-exclamation"></i>{errors.kebele}</p>}</div>
+          <div><label className="block text-xs font-bold text-forest-900 mb-1.5"><i className="fa-solid fa-door-open text-forest-600 mr-1 text-[10px]"></i>House No.</label><input type="text" placeholder="e.g. H-1042" value={form.houseNo} onChange={e=>hc('houseNo',e.target.value)} className={fc('houseNo')}/>{errors.houseNo&&<p className="mt-1 text-[11px] font-semibold text-red-500 flex items-center gap-1"><i className="fa-solid fa-triangle-exclamation"></i>{errors.houseNo}</p>}</div>
+        </div>
+
+        {/* GPS */}
+        <div className="section-divider pt-4"><span><i className="fa-solid fa-satellite-dish mr-1.5"></i>GPS Location (Optional)</span></div>
+        <div className="fade-up rounded-2xl border-2 border-dashed border-gray-200 overflow-hidden pt-2" style={{animationDelay:'350ms'}}>
+          <div className="p-4 space-y-3">
+            <div className="flex gap-1 bg-gray-50 rounded-lg p-1">
+              <button type="button" onClick={()=>setGpsMode('auto')} className={`flex-1 py-2 rounded-md text-xs font-bold transition-all ${gpsMode==='auto'?'bg-white text-forest-900 shadow-sm':'text-gray-400 hover:text-gray-600'}`}><i className="fa-solid fa-location-crosshairs mr-1"></i>Auto Detect</button>
+              <button type="button" onClick={()=>setGpsMode('manual')} className={`flex-1 py-2 rounded-md text-xs font-bold transition-all ${gpsMode==='manual'?'bg-white text-forest-900 shadow-sm':'text-gray-400 hover:text-gray-600'}`}><i className="fa-solid fa-keyboard mr-1"></i>Manual Entry</button>
+            </div>
+            {gpsMode==='auto'?(
+              <>
+                <button type="button" onClick={captureGPS} disabled={gpsLoading} className="w-full py-3 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-bold text-sm hover:bg-gray-50 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-2">
+                  {gpsLoading?<><i className="fa-solid fa-spinner spin-slow"></i>Detecting...</>:gps?<><i className="fa-solid fa-rotate-right text-forest-600"></i>Recapture</>:<><i className="fa-solid fa-location-crosshairs"></i>Capture GPS</>}
+                </button>
+                {!isSecure&&<div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500 font-medium"><i className="fa-solid fa-lock-open mr-1"></i>Auto GPS requires <strong>HTTPS</strong>. Use manual entry.</div>}
+              </>
+            ):(
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Latitude</label><input type="text" inputMode="decimal" placeholder="9.0222" value={manualGps.lat} onChange={e=>setManualGps(p=>({...p,lat:e.target.value}))} className="w-full px-3 py-2.5 rounded-lg border-2 border-gray-200 text-sm font-semibold focus:outline-none focus:border-forest-500 transition-all"/></div>
+                <div><label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Longitude</label><input type="text" inputMode="decimal" placeholder="38.7469" value={manualGps.lng} onChange={e=>setManualGps(p=>({...p,lng:e.target.value}))} className="w-full px-3 py-2.5 rounded-lg border-2 border-gray-200 text-sm font-semibold focus:outline-none focus:border-forest-500 transition-all"/></div>
+                <div className="col-span-2"><button type="button" onClick={applyManual} className="w-full py-2.5 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2"><i className="fa-solid fa-check"></i>Apply</button></div>
+              </div>
+            )}
+            {gps&&<div className="grid grid-cols-3 gap-2">{[{l:'Lat',v:gps.lat},{l:'Lng',v:gps.lng},{l:'Acc',v:gps.acc+(gps.acc!=='Manual'?'m':'')}].map((g,i)=><div key={i} className="bg-forest-50 rounded-lg px-3 py-2 border border-forest-100"><div className="text-[9px] font-extrabold text-forest-500 uppercase tracking-widest">{g.l}</div><div className="text-sm font-extrabold text-forest-950">{g.v}</div></div>)}</div>}
+            {gpsError&&<p className="text-xs font-semibold text-red-500 flex items-start gap-1"><i className="fa-solid fa-triangle-exclamation mt-0.5"></i><span>{gpsError}</span></p>}
+          </div>
+        </div>
+        <div className="fade-up pt-5 pb-1" style={{animationDelay:'380ms'}}>
+          <button type="submit" disabled={saving} className="w-full py-4 rounded-2xl bg-gradient-to-r from-forest-800 to-forest-900 text-white font-extrabold text-[15px] tracking-wide hover:from-forest-900 hover:to-forest-950 active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-wait shadow-lg shadow-forest-900/20 flex items-center justify-center gap-2.5">
+            {saving?<><i className="fa-solid fa-spinner spin-slow"></i>Saving...</>:<><i className="fa-solid fa-floppy-disk"></i>Save Enumeration Record</>}
+          </button>
+        </div>
+      </form>)
+    }
+
+    /* ═══ Charts ═══ */
+    function Charts({records}){
+      const c1=useRef(null),c2=useRef(null),c3=useRef(null),c4=useRef(null);
+      const i1=useRef(null),i2=useRef(null),i3=useRef(null),i4=useRef(null);
+      const familyBuckets=useMemo(()=>{const b={'1-2':0,'3-4':0,'5-6':0,'7-9':0,'10+':0};records.forEach(r=>{const s=r.familySize;if(s<=2)b['1-2']++;else if(s<=4)b['3-4']++;else if(s<=6)b['5-6']++;else if(s<=9)b['7-9']++;else b['10+']++});return b},[records]);
+      const genderTotals=useMemo(()=>({male:records.reduce((s,r)=>s+r.maleCount,0),female:records.reduce((s,r)=>s+r.femaleCount,0)}),[records]);
+      const ageGroups=useMemo(()=>{let u10=0,t17=0,e59=0,a60=0;records.forEach(r=>{u10+=r.under10;t17+=Math.max(0,r.under18-r.under10);a60+=r.above60;e59+=Math.max(0,r.familySize-r.under18-r.above60)});return{under10:u10,tenTo17:t17,eighteenTo59:e59,above60:a60}},[records]);
+      const regionData=useMemo(()=>{const m={};records.forEach(r=>{m[r.region]=(m[r.region]||0)+1});return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,6)},[records]);
+      useEffect(()=>{
+        const ff={family:'DM Sans',weight:'bold'};
+        if(c1.current){if(i1.current)i1.current.destroy();i1.current=new Chart(c1.current,{type:'bar',data:{labels:Object.keys(familyBuckets),datasets:[{data:Object.values(familyBuckets),backgroundColor:['#34D399','#10B981','#059669','#047857','#064E3B'],borderRadius:8,borderSkipped:false,barPercentage:.7}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:'Household Size',font:{...ff,size:12},color:'#0A4D30',padding:{bottom:10}}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{size:10,...ff},color:'#9CA3AF'},grid:{color:'#F3F4F6',drawBorder:false}},x:{ticks:{font:{size:9,...ff},color:'#9CA3AF'},grid:{display:false}}}}})}
+        if(c2.current){if(i2.current)i2.current.destroy();const has=genderTotals.male+genderTotals.female>0;i2.current=new Chart(c2.current,{type:'bar',data:{labels:['Male','Female'],datasets:[{data:has?[genderTotals.male,genderTotals.female]:[0,0],backgroundColor:has?['#3B82F6','#EC4899']:['#E5E7EB','#E5E7EB'],borderRadius:8,borderSkipped:false,barPercentage:.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:'Gender Total',font:{...ff,size:12},color:'#0A4D30',padding:{bottom:10}}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{size:10,...ff},color:'#9CA3AF'},grid:{color:'#F3F4F6',drawBorder:false}},x:{ticks:{font:{size:10,...ff},color:'#374151'},grid:{display:false}}}}})}
+        if(c3.current){if(i3.current)i3.current.destroy();const d=ageGroups;const has=d.under10+d.tenTo17+d.eighteenTo59+d.above60>0;i3.current=new Chart(c3.current,{type:'doughnut',data:{labels:['Under 10','10-17','18-59','60+'],datasets:[{data:has?[d.under10,d.tenTo17,d.eighteenTo59,d.above60]:[1,1,1,1],backgroundColor:has?['#F59E0B','#F97316','#0D9456','#7C3AED']:['#E5E7EB','#E5E7EB','#E5E7EB','#E5E7EB'],borderWidth:0,spacing:3,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{position:'bottom',labels:{padding:10,usePointStyle:true,pointStyleWidth:10,font:{size:10,...ff},color:'#374151'}},title:{display:true,text:'Age Groups',font:{...ff,size:12},color:'#0A4D30',padding:{bottom:6}}}}})}
+        if(c4.current){if(i4.current)i4.current.destroy();i4.current=new Chart(c4.current,{type:'bar',data:{labels:regionData.map(d=>d[0]),datasets:[{data:regionData.map(d=>d[1]),backgroundColor:'#F59E0B',borderRadius:6,borderSkipped:false,barPercentage:.65}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:'Top Regions',font:{...ff,size:12},color:'#0A4D30',padding:{bottom:10}}},scales:{x:{beginAtZero:true,ticks:{stepSize:1,font:{size:10,...ff},color:'#9CA3AF'},grid:{color:'#F3F4F6',drawBorder:false}},y:{ticks:{font:{size:9,...ff},color:'#374151'},grid:{display:false}}}}})}
+        return()=>{[i1,i2,i3,i4].forEach(r=>{if(r.current)r.current.destroy()})};
+      },[records,familyBuckets,genderTotals,ageGroups,regionData]);
+      if(records.length===0)return null;
+      return(<div className="space-y-5 fade-up"><h3 className="text-lg font-extrabold text-forest-950"><i className="fa-solid fa-chart-pie text-forest-600 mr-2 text-sm"></i>Analytics Overview</h3><div className="grid grid-cols-2 lg:grid-cols-4 gap-3">{[c1,c2,c3,c4].map((ref,i)=><div key={i} className="bg-white rounded-2xl border border-gray-100 p-3 shadow-sm" style={{height:'240px'}}><canvas ref={ref}></canvas></div>)}</div></div>);
+    }
+
+    /* ═══ Data Table ═══ */
+    function DataTable({records,onDelete,onSync,isOnline,addToast}){
+      const [syncing,setSyncing]=useState(false);
+      const [expandedId,setExpandedId]=useState(null);
+      const unsynced=records.filter(r=>!r.synced).length;
+      const handleSync=async()=>{if(!isOnline){addToast('Cannot sync while offline','error');return}if(unsynced===0){addToast('All synced','info');return}setSyncing(true);try{await new Promise(r=>setTimeout(r,1800));await db.markAllSynced();addToast(`${unsynced} synced`,'success');onSync()}catch(e){addToast('Sync failed','error')}finally{setSyncing(false)}};
+      const handleDel=async(id,name)=>{try{await db.delete(id);addToast(`"${name}" deleted`,'info');onDelete()}catch(e){addToast('Delete failed','error')}};
+      const fmt=iso=>new Date(iso).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+      if(records.length===0)return(<div className="text-center py-20"><div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-forest-50 to-emerald-50 mb-4 border-2 border-forest-100"><i className="fa-solid fa-inbox text-3xl text-forest-300"></i></div><h3 className="text-lg font-bold text-forest-900 mb-1">No Records Yet</h3><p className="text-sm text-gray-400">Add a new entry using the form tab.</p></div>);
+      const totalPeople=records.reduce((s,r)=>s+r.familySize,0),totalMale=records.reduce((s,r)=>s+r.maleCount,0),totalFemale=records.reduce((s,r)=>s+r.femaleCount,0),totalUnder18=records.reduce((s,r)=>s+r.under18,0),totalAbove18=records.reduce((s,r)=>s+(r.familySize-r.under18),0);
+      return(<div className="space-y-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 fade-up">
+          {[{l:'Total People',v:totalPeople,ic:'fa-users',bg:'bg-forest-50',tc:'text-forest-700',bc:'border-forest-100'},{l:'Total Male',v:totalMale,ic:'fa-mars',bg:'bg-blue-50',tc:'text-blue-700',bc:'border-blue-100'},{l:'Total Female',v:totalFemale,ic:'fa-venus',bg:'bg-pink-50',tc:'text-pink-700',bc:'border-pink-100'},{l:'Under 18',v:totalUnder18,ic:'fa-child',bg:'bg-orange-50',tc:'text-orange-700',bc:'border-orange-100'},{l:'Above 18',v:totalAbove18,ic:'fa-user-graduate',bg:'bg-emerald-50',tc:'text-emerald-700',bc:'border-emerald-100'}].map((s,i)=>(
+            <div key={i} className={`rounded-xl border ${s.bc} ${s.bg} p-3.5`}><div className="flex items-center gap-2 mb-1"><i className={`fa-solid ${s.ic} text-xs ${s.tc}`}></i><span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{s.l}</span></div><div className={`text-2xl font-extrabold ${s.tc}`}>{s.v}</div></div>
+          ))}
+        </div>
+        <Charts records={records}/>
+        <div className="flex flex-wrap items-center justify-between gap-3 fade-up">
+          {unsynced>0&&<span className="text-xs font-bold text-gold-700 bg-gold-100 px-3 py-1.5 rounded-full"><i className="fa-solid fa-clock mr-1"></i>{unsynced} pending</span>}
+          <button onClick={handleSync} disabled={syncing||!isOnline} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-forest-700 to-forest-800 text-white text-sm font-bold hover:from-forest-800 hover:to-forest-900 active:scale-[0.97] transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-md shadow-forest-900/15">{syncing?<><i className="fa-solid fa-spinner spin-slow"></i>Syncing...</>:<><i className="fa-solid fa-cloud-arrow-up"></i>Sync All</>}</button>
+        </div>
+        <div className="space-y-3 fade-up">
+          {records.map((r,idx)=>(
+            <div key={r.id} className={`row-animate bg-white rounded-2xl border transition-all ${expandedId===r.id?'border-forest-300 shadow-md':'border-gray-100 shadow-sm hover:border-gray-200'}`} style={{animationDelay:`${idx*30}ms`}}>
+              <div className="px-4 py-3.5 flex items-center justify-between cursor-pointer" onClick={()=>setExpandedId(expandedId===r.id?null:r.id)}>
+                <div className="flex items-center gap-3 min-w-0"><div className="w-10 h-10 rounded-xl bg-forest-50 flex items-center justify-center flex-shrink-0 border border-forest-100"><span className="text-xs font-extrabold text-forest-700">{idx+1}</span></div><div className="min-w-0"><div className="font-bold text-forest-950 truncate">{r.fullName}</div><div className="text-[11px] text-gray-400 font-medium">{r.subCity || r.zone} &middot; {r.woreda} &middot; {r.region}</div></div></div>
+                <div className="flex items-center gap-2 flex-shrink-0"><div className="text-right mr-1 hidden sm:block"><div className="text-sm font-extrabold text-forest-900">{r.familySize} <span className="text-[10px] text-gray-400 font-semibold">people</span></div></div>{r.synced?<span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full"><i className="fa-solid fa-check mr-0.5"></i>Synced</span>:<span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded-full"><i className="fa-solid fa-clock mr-0.5"></i>Pending</span>}<i className={`fa-solid fa-chevron-down text-gray-300 text-xs transition-transform duration-200 ${expandedId===r.id?'rotate-180':''}`}></i></div>
+              </div>
+              {expandedId===r.id&&(
+                <div className="px-4 pb-4 border-t border-gray-100 pt-3 space-y-3 fade-up">
+                  <div className="grid grid-cols-3 gap-2">{[{l:'Family',v:r.familySize,ic:'fa-people-group',bg:'bg-forest-50',bc:'border-forest-100',tc:'text-forest-900'},{l:'Male',v:r.maleCount,ic:'fa-mars',bg:'bg-blue-50',bc:'border-blue-100',tc:'text-blue-900'},{l:'Female',v:r.femaleCount,ic:'fa-venus',bg:'bg-pink-50',bc:'border-pink-100',tc:'text-pink-900'}].map((s,i)=><div key={i} className={`rounded-xl p-2.5 text-center border ${s.bg} ${s.bc}`}><i className={`fa-solid ${s.ic} text-[10px] ${s.tc} mb-1 block opacity-60`}></i><div className="text-lg font-extrabold">{s.v}</div><div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{s.l}</div></div>)}</div>
+                  <div className="grid grid-cols-3 gap-2">{[{l:'Under 10',v:r.under10,ic:'fa-baby',bg:'bg-amber-50',bc:'border-amber-100',tc:'text-amber-900'},{l:'Under 18',v:r.under18,ic:'fa-child',bg:'bg-orange-50',bc:'border-orange-100',tc:'text-orange-900'},{l:'Above 60',v:r.above60,ic:'fa-person-cane',bg:'bg-purple-50',bc:'border-purple-100',tc:'text-purple-900'}].map((s,i)=><div key={i} className={`rounded-xl p-2.5 text-center border ${s.bg} ${s.bc}`}><i className={`fa-solid ${s.ic} text-[10px] ${s.tc} mb-1 block opacity-60`}></i><div className="text-lg font-extrabold">{s.v}</div><div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">{s.l}</div></div>)}</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gray-50 rounded-lg p-2.5"><div className="text-[9px] font-extrabold text-gray-400 uppercase tracking-wider mb-0.5">Full Address</div><div className="text-xs font-semibold text-gray-700">{r.subCity ? r.subCity + ', ' : ''}{r.zone ? r.zone + ', ' : ''}{r.woreda}</div><div className="text-xs font-semibold text-gray-500">{r.kebele}, {r.region}</div></div>
+                    <div className="bg-gray-50 rounded-lg p-2.5"><div className="text-[9px] font-extrabold text-gray-400 uppercase tracking-wider mb-0.5">House No.</div><div className="text-xs font-bold text-forest-900">{r.houseNo}</div>{r.latitude!==null&&<div className="text-[10px] font-mono text-forest-600 mt-1"><i className="fa-solid fa-location-dot mr-0.5"></i>{r.latitude.toFixed(4)}, {r.longitude.toFixed(4)}</div>}</div>
+                  </div>
+                  <div className="flex items-center justify-between"><span className="text-[10px] text-gray-400 font-medium"><i className="fa-regular fa-clock mr-1"></i>{fmt(r.createdAt)}</span><button onClick={(e)=>{e.stopPropagation();handleDel(r.id,r.fullName)}} className="px-3 py-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 active:scale-95 transition-all text-xs font-bold flex items-center gap-1.5"><i className="fa-solid fa-trash-can text-[10px]"></i>Delete</button></div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>);
+    }
+
+    /* ═══ App Shell ═══ */
+    function AppShell({addToast,storageTier,isPersistent,onDismissBanner}){
+      const [tab,setTab]=useState('form');
+      const [isOnline,setIsOnline]=useState(navigator.onLine);
+      const [records,setRecords]=useState([]);
+      const [unsyncedCount,setUnsyncedCount]=useState(0);
+      const [entering,setEntering]=useState(true);
+
+      const load=useCallback(async()=>{try{const d=await db.getAll();d.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));setRecords(d);setUnsyncedCount(await db.getUnsyncedCount())}catch(e){addToast('Load failed: '+e.message,'error')}},[addToast]);
+      useEffect(()=>{const on=()=>{setIsOnline(true);addToast('Connection restored','success')};const off=()=>{setIsOnline(false);addToast('Now offline. Records save locally.','error')};window.addEventListener('online',on);window.addEventListener('offline',off);return()=>{window.removeEventListener('online',on);window.removeEventListener('offline',off)}},[addToast]);
+      useEffect(()=>{load();setTimeout(()=>setEntering(false),100)},[load]);
+
+      const tierLabel={idb:'IndexedDB',ls:'localStorage',memory:'Memory (temp)'};
+      const tierColor={idb:'text-emerald-400 bg-emerald-500/10',ls:'text-gold-500 bg-gold-500/10',memory:'text-red-400 bg-red-500/10'};
+
+      return(
+        <div className={`min-h-[100dvh] flex flex-col font-ui relative z-10 ${entering?'page-enter':''}`}>
+          <SecurityBanner isPersistent={isPersistent} onDismiss={onDismissBanner}/>
+          <header className="relative z-40">
+            <div className="shimmer-border h-[3px]"></div>
+            <div className="bg-gradient-to-r from-forest-950 via-forest-900 to-forest-950 text-white">
+              <div className="max-w-3xl mx-auto px-4 sm:px-5 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="float-anim hidden sm:block"><EthiopianFlag size={44} /></div>
+                  <div>
+                    <h1 className="font-brand text-[15px] sm:text-[17px] leading-none font-black tracking-tight">DIGITAL ETHIOPIA</h1>
+                    <span className="text-[10px] font-extrabold text-flag-yellow tracking-[0.3em] uppercase">Census</span>
+                  </div>
+                </div>
+                <SyncStatus isOnline={isOnline} unsyncedCount={unsyncedCount}/>
+              </div>
+            </div>
+          </header>
+          <nav className="card-glass border-b border-gray-200/60 sticky top-[56px] z-30">
+            <div className="max-w-3xl mx-auto px-5 flex gap-1">
+              {[{key:'form',label:'New Entry',icon:'fa-pen-to-square'},{key:'dashboard',label:'Records',icon:'fa-table-list',badge:records.length}].map(t=>(
+                <button key={t.key} onClick={()=>setTab(t.key)} className={`tab-btn flex-1 py-3.5 text-sm font-bold tracking-wide ${tab===t.key?'active text-forest-800':'text-gray-400 hover:text-gray-600'}`} role="tab" aria-selected={tab===t.key}>
+                  <i className={`fa-solid ${t.icon} mr-1.5 text-xs`}></i>{t.label}
+                  {t.badge>0&&<span className="ml-1.5 inline-flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-forest-900 text-white text-[10px] font-extrabold">{t.badge}</span>}
+                </button>
+              ))}
+            </div>
+          </nav>
+          <main className="flex-1 max-w-3xl mx-auto w-full px-5 py-6">
+            {tab==='form'?(
+              <section>
+                <div className="mb-5 fade-up"><h2 className="text-xl font-extrabold text-forest-950 mb-1">Household Enumeration</h2><p className="text-sm text-gray-400">Enter household head details, family composition, and location.</p></div>
+                <div className="card-glass rounded-2xl border border-gray-200/60 p-5 shadow-lg shadow-black/[0.03]"><CensusForm onSave={load} addToast={addToast}/></div>
+                {!isOnline&&<div className="mt-4 bg-amber-50/80 border border-amber-300/60 rounded-xl px-4 py-3 flex items-start gap-3 fade-up"><i className="fa-solid fa-wifi text-amber-500 mt-0.5"></i><div><p className="text-sm font-bold text-amber-900">Working Offline</p><p className="text-xs text-amber-700/80 mt-0.5">Records save locally. They sync when you reconnect.</p></div></div>}
+              </section>
+            ):(
+              <section>
+                <div className="mb-5 fade-up"><h2 className="text-xl font-extrabold text-forest-950 mb-1">Saved Records</h2><p className="text-sm text-gray-400">Tap a record to see full details.</p></div>
+                <DataTable records={records} onDelete={load} onSync={load} isOnline={isOnline} addToast={addToast}/>
+              </section>
+            )}
+          </main>
+          <footer className="bg-forest-950/95 backdrop-blur-sm text-forest-400 py-4 mt-auto border-t border-forest-900">
+            <div className="max-w-3xl mx-auto px-5 flex flex-wrap items-center justify-between gap-2 text-[11px] font-medium">
+              <div className="flex items-center gap-2"><EthiopianFlag size={20} /><span>Digital Ethiopia Census</span><span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${tierColor[storageTier]}`}>{tierLabel[storageTier]}</span></div>
+              <span className="text-forest-700">v6.0</span>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    /* ═══ Root ═══ */
+    function App(){
+      const [page,setPage]=useState('landing');
+      const [toasts,setToasts]=useState([]);
+      const [storageTier,setStorageTier]=useState(null);
+      const [isPersistent,setIsPersistent]=useState(true);
+      const [showBanner,setShowBanner]=useState(false);
+      const tid=useRef(0);
+
+      const addToast=useCallback((msg,type='info')=>{const id=++tid.current;setToasts(p=>[...p,{id,message:msg,type,exiting:false}]);setTimeout(()=>{setToasts(p=>p.map(t=>t.id===id?{...t,exiting:true}:t));setTimeout(()=>setToasts(p=>p.filter(t=>t.id!==id)),300)},3800)},[]);
+      const dismiss=useCallback(id=>{setToasts(p=>p.map(t=>t.id===id?{...t,exiting:true}:t));setTimeout(()=>setToasts(p=>p.filter(t=>t.id!==id)),300)},[]);
+
+      useEffect(()=>{db.ready.then(()=>{const t=db.getTier();setStorageTier(t);setIsPersistent(db.isPersistent());if(!db.isPersistent()){setShowBanner(true);addToast('Using temporary memory storage. Data will not persist.','error')}else if(t==='ls')addToast('Using localStorage (IndexedDB unavailable)','info')}).catch(e=>addToast('Storage init failed: '+e.message,'error'))},[addToast]);
+
+      if(page==='landing')return(<><ToastContainer toasts={toasts} onDismiss={dismiss}/><LandingPage onNext={()=>setPage('app')}/></>);
+      return(<><ToastContainer toasts={toasts} onDismiss={dismiss}/><AppShell addToast={addToast} storageTier={storageTier} isPersistent={isPersistent} onDismissBanner={()=>setShowBanner(false)}/></>);
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
